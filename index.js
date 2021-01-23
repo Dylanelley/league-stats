@@ -129,11 +129,7 @@ async function collectAllData(name, region, type, amount=0) {
     }
     
     let length = collection.matches.length
-
-    
-    
-    console.log("Initial sleep : " + sleepTime + "ms")
-    //sleep(10)
+   
     
     let actualTimePassed
     for (let i = 0; i < length; i++) {
@@ -142,8 +138,6 @@ async function collectAllData(name, region, type, amount=0) {
         collection.matches[i].gameStats = await fetchGame(collection.matches[i].gameId, region, collection.summoner.accountId)   
         
         
-        
-        console.log("Waiting : " + sleepTime + "ms")
         
     }
     console.log(collection.matches[0])

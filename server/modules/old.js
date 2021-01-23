@@ -1,6 +1,8 @@
 const { Constants } = require("twisted")
 
-require("dotenv").config({ path: '../.env' })
+
+
+require("dotenv").config({ path: '../../.env' })
 
 let LolApiObject = require("twisted").LolApi
 
@@ -19,6 +21,10 @@ const api = new LolApiObject({
     rateLimitRetry: false,
     rateLimitRetryAttempts: 0
 })
+
+function waiter(ms){
+    return new Promise(resolve => setTimeout(resolve, ms))
+}
 
 async function getSummoner(name, region) {
     return (await api.Summoner.getByName(name, region)).response
@@ -101,7 +107,15 @@ async function getMatches(name, region, type, amount= -1) {
     return {summoner, matches}
 }
 
-async function collectAllData(name, region, type, amount=0) {
+/**
+ *
+ * @param name
+ * @param region
+ * @param type
+ * @param amount {number} number of matches to retreive, if amount = -1 then retreive all
+ * @returns {Promise<{summoner: {}, matches: *[]}>}
+ */
+async function collectAllData(name, region, type, amount=-1) {
     console.log("Finding Matches ...")
     
     let collection = await getMatches(name, region, type, amount)

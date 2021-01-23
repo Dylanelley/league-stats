@@ -1,6 +1,6 @@
 const { Constants } = require("twisted")
 
-require("dotenv").config()
+require("dotenv").config({ path: '../.env' })
 
 let LolApiObject = require("twisted").LolApi
 

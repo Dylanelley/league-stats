@@ -1,14 +1,12 @@
 const { Constants } = require("twisted")
-const { performance } = require('perf_hooks')
-
 
 require("dotenv").config()
 
-// API_KEY = process.env.API_KEY
 let LolApiObject = require("twisted").LolApi
 
 // rate Limit
 const RATE_LIMIT = parseFloat(process.env.REQUEST_TIME)
+const MATCH_BATCH_SIZE = 100
 
 // user variables
 let sumName = "happyfridge24"
@@ -22,23 +20,23 @@ const api = new LolApiObject({
     rateLimitRetryAttempts: 0
 })
 
-async function fetchSummonerDetails(name, region) {
+async function getSummoner(name, region) {
     return (await api.Summoner.getByName(name, region)).response
 }
 
-async function fetchMatch(id, region, filter) {
-    let rawMatches = await api.Match.list(id, region, filter)
-    rawMatches.response.matches.forEach(m => {
-        m.championName = Constants.Champions[m.champion]
-        delete m.lane
-        delete m.role
-        delete m.season
-        delete m.platformId
+async function getMatch(id, region, filter) {
+    let response  = (await api.Match.list(id, region, filter)).response
+    response.matches.forEach(match => {
+        match.championName = Constants.Champions[match.champion]
+        delete match.lane
+        delete match.role
+        delete match.season
+        delete match.platformId
     });
-    return rawMatches.response
+    return response
 }
 
-async function fetchGame(id, region, accountId) {
+async function getGame(id, region, accountId) {
     let gameData = await api.Match.get(id, region)
     let myId
     let team
@@ -47,14 +45,15 @@ async function fetchGame(id, region, accountId) {
     let mostKills = 0
     let myStats = {}
     let otherGamers = []
+
     gameData.response.participantIdentities.forEach(gamer => {
         if (gamer.player.accountId == accountId) {
             myId = gamer.participantId
-        }
-        else {
+        } else {
             otherGamers.push(gamer.player.summonerName)
         }
     });
+
     gameData.response.participants.forEach(gamer => {
         if (gamer.participantId == myId) {
             team = (gamer.teamId == 100) ? "BOT SIDE" : "TOP SIDE" 
@@ -70,9 +69,9 @@ async function fetchGame(id, region, accountId) {
             mostKills = gamer.stats.kills
         }
     })
-    if (myStats.kills[0] == mostKills) {
-        topFragger = true
-    }
+
+    if (myStats.kills[0] === mostKills) topFragger = true
+
     return {win: win, team: team, topFragger: topFragger, stats: myStats, otherGamers: otherGamers}
     
 }
@@ -83,10 +82,10 @@ async function fetchGame(id, region, accountId) {
  * @param region
  * @param type
  * @param amount {number} number of matches to get, -1 or amount larger than number of matches grabs all matches
- * @returns {Promise<{summoner: unknown, matches: *[]}>}
+ * @returns {Promise<{summoner: {}, matches: *[]}>}
  */
 async function getMatches(name, region, type, amount= -1) {
-    let user = await fetchSummonerDetails(name, region)
+    let user = await getSummoner(name, region)
     
     let filter = {
         queue: type,
@@ -96,28 +95,25 @@ async function getMatches(name, region, type, amount= -1) {
     let totalMatches = []
     let matchBatch
 
-
     do {
         if (0 < amount) {
-            if (amount < 100) {
+            if (amount < MATCH_BATCH_SIZE) {
                 filter.endIndex = filter.beginIndex + amount
                 amount = 0
             } else {
-                amount -= 100
+                amount -= MATCH_BATCH_SIZE
             }
         }
 
-        matchBatch = await fetchMatch(user.accountId, region, filter)
+        matchBatch = await getMatch(user.accountId, region, filter)
         totalMatches = totalMatches.concat(matchBatch.matches)
 
         console.log(filter.beginIndex + " : " + matchBatch.endIndex)
 
         filter.beginIndex = matchBatch.endIndex
     } while ((matchBatch.startIndex !== matchBatch.endIndex) && amount !== 0)
-
-    let userOb = {summoner: user, matches: totalMatches}
     
-    return userOb
+    return {summoner: user, matches: totalMatches}
 }
 
 async function collectAllData(name, region, type, amount=0) {
@@ -129,11 +125,11 @@ async function collectAllData(name, region, type, amount=0) {
     let actualTimePassed
     for (let i = 0; i < length; i++) {
         console.log(i+1 + "/" + length)
-        collection.matches[i].gameStats = await fetchGame(collection.matches[i].gameId, region, collection.summoner.accountId)
+        collection.matches[i].gameStats = await getGame(collection.matches[i].gameId, region, collection.summoner.accountId)
     }
 
     console.log(collection.matches[0])
     return collection
 }
 
-collectAllData(sumName, sumRegion, matchType, -1)
+collectAllData(sumName, sumRegion, matchType, 5)

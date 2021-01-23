@@ -24,55 +24,43 @@ async function getSummoner(name, region) {
     return (await api.Summoner.getByName(name, region)).response
 }
 
-async function getMatch(id, region, filter) {
-    let response  = (await api.Match.list(id, region, filter)).response
-    response.matches.forEach(match => {
-        match.championName = Constants.Champions[match.champion]
-        delete match.lane
-        delete match.role
-        delete match.season
-        delete match.platformId
-    });
-    return response
-}
-
-async function getGame(id, region, accountId) {
-    let gameData = await api.Match.get(id, region)
+async function getMatch(id, region, accountId) {
+    let match = await api.Match.get(id, region)
     let myId
     let team
     let win
     let topFragger = false
     let mostKills = 0
     let myStats = {}
-    let otherGamers = []
+    let summoners = []
 
-    gameData.response.participantIdentities.forEach(gamer => {
-        if (gamer.player.accountId == accountId) {
-            myId = gamer.participantId
+    match.response.participantIdentities.forEach(summoner => {
+        if (summoner.player.accountId === accountId) {
+            myId = summoner.participantId
         } else {
-            otherGamers.push(gamer.player.summonerName)
+            summoners.push(summoner.player.summonerName)
         }
     });
 
-    gameData.response.participants.forEach(gamer => {
-        if (gamer.participantId == myId) {
-            team = (gamer.teamId == 100) ? "BOT SIDE" : "TOP SIDE" 
-            win = gamer.stats.win
-            myStats.kills = [gamer.stats.kills, gamer.stats.doubleKills, gamer.stats.tripleKills, gamer.stats.quadraKills, gamer.stats.pentaKills]
-            myStats.deaths = gamer.stats.deaths
-            myStats.assists = gamer.stats.assists
-            myStats.damageToChamps = gamer.stats.totalDamageDealtToChampions
-            myStats.cs = gamer.stats.totalMinionsKilled
-            myStats.goldValue = gamer.stats.goldEarned
+    match.response.participants.forEach(summoner => {
+        if (summoner.participantId === myId) {
+            team = (summoner.teamId === 100) ? "BOT SIDE" : "TOP SIDE"
+            win = summoner.stats.win
+            myStats.kills = [summoner.stats.kills, summoner.stats.doubleKills, summoner.stats.tripleKills, summoner.stats.quadraKills, summoner.stats.pentaKills]
+            myStats.deaths = summoner.stats.deaths
+            myStats.assists = summoner.stats.assists
+            myStats.damageToChamps = summoner.stats.totalDamageDealtToChampions
+            myStats.cs = summoner.stats.totalMinionsKilled
+            myStats.goldValue = summoner.stats.goldEarned
         }
-        if (gamer.stats.kills > mostKills) {
-            mostKills = gamer.stats.kills
+        if (summoner.stats.kills > mostKills) {
+            mostKills = summoner.stats.kills
         }
     })
 
     if (myStats.kills[0] === mostKills) topFragger = true
 
-    return {win: win, team: team, topFragger: topFragger, stats: myStats, otherGamers: otherGamers}
+    return {win, team, topFragger, stats: myStats, summoners}
     
 }
 
@@ -85,15 +73,15 @@ async function getGame(id, region, accountId) {
  * @returns {Promise<{summoner: {}, matches: *[]}>}
  */
 async function getMatches(name, region, type, amount= -1) {
-    let user = await getSummoner(name, region)
+    let summoner = await getSummoner(name, region)
     
     let filter = {
         queue: type,
         beginIndex: 0
     }
 
-    let totalMatches = []
-    let matchBatch
+    let matches = []
+    let response
 
     do {
         if (0 < amount) {
@@ -105,15 +93,12 @@ async function getMatches(name, region, type, amount= -1) {
             }
         }
 
-        matchBatch = await getMatch(user.accountId, region, filter)
-        totalMatches = totalMatches.concat(matchBatch.matches)
-
-        console.log(filter.beginIndex + " : " + matchBatch.endIndex)
-
-        filter.beginIndex = matchBatch.endIndex
-    } while ((matchBatch.startIndex !== matchBatch.endIndex) && amount !== 0)
+        response  = (await api.Match.list(summoner.accountId, region, filter)).response
+        matches = matches.concat(response.matches)
+        filter.beginIndex = response.endIndex
+    } while ((response.startIndex !== response.endIndex) && amount !== 0)
     
-    return {summoner: user, matches: totalMatches}
+    return {summoner, matches}
 }
 
 async function collectAllData(name, region, type, amount=0) {
@@ -121,13 +106,13 @@ async function collectAllData(name, region, type, amount=0) {
     
     let collection = await getMatches(name, region, type, amount)
     let length = collection.matches.length
-    
-    let actualTimePassed
+
     for (let i = 0; i < length; i++) {
         console.log(i+1 + "/" + length)
-        collection.matches[i].gameStats = await getGame(collection.matches[i].gameId, region, collection.summoner.accountId)
+        collection.matches[i].gameStats = await getMatch(collection.matches[i].gameId, region, collection.summoner.accountId)
     }
 
+    collection.matches[0].championName = Constants.Champions[collection.matches[0].champion]
     console.log(collection.matches[0])
     return collection
 }

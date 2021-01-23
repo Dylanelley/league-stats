@@ -1,6 +1,6 @@
 const { Constants } = require("twisted")
 const {performance} = require('perf_hooks');
-const sleep = require("system-sleep")
+
 
 
 require("dotenv").config()
@@ -119,7 +119,7 @@ async function getAllMatches(name, region, type) {
 
 async function collectAllData(name, region, type, amount=0) {
     console.log("Finding Matches ...")
-    let t0 = performance.now()
+    
     let collection
     if (amount < 100 && amount > 0) {
         collection = await getMatchesShort(name, region, type, amount)
@@ -127,23 +127,22 @@ async function collectAllData(name, region, type, amount=0) {
     else {
         collection = await getAllMatches(name, region, type)
     }
-    let t1 = performance.now()
+    
     let length = collection.matches.length
 
-    let minTime = Math.ceil(length/100) * RATE_LIMIT
-    let actualTime = t1 - t0
-    let sleepTime = (actualTime >= minTime) ? 0 : Math.floor(minTime - actualTime)
+    
+    
     console.log("Initial sleep : " + sleepTime + "ms")
     //sleep(10)
     
     let actualTimePassed
     for (let i = 0; i < length; i++) {
         console.log(i+1 + "/" + length)
-        t0 = performance.now()
+        
         collection.matches[i].gameStats = await fetchGame(collection.matches[i].gameId, region, collection.summoner.accountId)   
-        t1 = performance.now()
-        actualTimePassed =  t1 - t0
-        sleepTime = (actualTImePassed > RATE_LIMIT) ? 0 : (RATE_LIMIT - actualTimePassed)
+        
+        
+        
         console.log("Waiting : " + sleepTime + "ms")
         
     }
@@ -153,4 +152,4 @@ async function collectAllData(name, region, type, amount=0) {
 
 
 
-collectAllData(sumName, sumRegion, matchType)
+collectAllData(sumName, sumRegion, matchType, 20)

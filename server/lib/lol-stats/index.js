@@ -1,20 +1,14 @@
-const { Constants } = require("twisted")
+const { Constants, LolApi } = require("twisted")
+require("dotenv").config({ path: '../../../.env' })
 
-require("dotenv").config({ path: '../.env' })
-
-let LolApiObject = require("twisted").LolApi
-
-// rate Limit
 const RATE_LIMIT = parseFloat(process.env.REQUEST_TIME)
 const MATCH_BATCH_SIZE = 100
-
-// user variables
-let sumName = "happyfridge24"
-let sumRegion = Constants.Regions.OCEANIA
-let matchType = 450 // arams
+const NAME = "happyfridge24"
+const REGION = Constants.Regions.OCEANIA
+const MATCH_TYPE = 450 // arams
 
 
-const api = new LolApiObject({
+const api = new LolApi({
     key : process.env.API_KEY,
     rateLimitRetry: false,
     rateLimitRetryAttempts: 0
@@ -26,47 +20,61 @@ async function getSummoner(name, region) {
 
 async function getMatch(id, region, accountId) {
     let match = await api.Match.get(id, region)
-    let myId
-    let team
-    let win
-    let topFragger = false
-    let mostKills = 0
-    let myStats = {}
-    let summoners = []
+    let player = {
+        id,
+        team: "",
+        stats: {
+            win: false,
+            topFragger: false,
+            kills: {},
+            deaths: 0,
+            assists: 0,
+            damageDealtToChampions: 0,
+            totalMinionsKilled: 0,
+            goldEarned: 0,
+        },
+        opponents: []
+    }
+    let mostKills = 0;
 
     match.response.participantIdentities.forEach(summoner => {
         if (summoner.player.accountId === accountId) {
-            myId = summoner.participantId
+            player.id = summoner.participantId
         } else {
-            summoners.push(summoner.player.summonerName)
+            player.opponents.push(summoner.player.summonerName)
         }
     });
 
     match.response.participants.forEach(summoner => {
-        if (summoner.participantId === myId) {
-            team = (summoner.teamId === 100) ? "BOT SIDE" : "TOP SIDE"
-            win = summoner.stats.win
-            myStats.kills = [summoner.stats.kills, summoner.stats.doubleKills, summoner.stats.tripleKills, summoner.stats.quadraKills, summoner.stats.pentaKills]
-            myStats.deaths = summoner.stats.deaths
-            myStats.assists = summoner.stats.assists
-            myStats.damageToChamps = summoner.stats.totalDamageDealtToChampions
-            myStats.cs = summoner.stats.totalMinionsKilled
-            myStats.goldValue = summoner.stats.goldEarned
+        if (summoner.participantId === player.id) {
+            player.team = (summoner.teamId === 100) ? "BOT SIDE" : "TOP SIDE"
+            player.stats.win = summoner.stats.win
+            player.stats.kills = {
+                total: summoner.stats.kills,
+                doubleKills: summoner.stats.doubleKills,
+                tripleKills: summoner.stats.tripleKills,
+                quadraKills: summoner.stats.quadraKills,
+                pentaKills: summoner.stats.pentaKills
+            }
+            player.stats.deaths = summoner.stats.deaths
+            player.stats.assists = summoner.stats.assists
+            player.stats.damageDealtToChampions = summoner.stats.totalDamageDealtToChampions
+            player.stats.totalMinionsKilled = summoner.stats.totalMinionsKilled
+            player.stats.goldEarned = summoner.stats.goldEarned
         }
-        if (summoner.stats.kills > mostKills) {
-            mostKills = summoner.stats.kills
-        }
+
+        if (summoner.stats.kills > mostKills) mostKills = summoner.stats.kills
     })
 
-    if (myStats.kills[0] === mostKills) topFragger = true
+    player.topFragger = player.stats.kills.total === mostKills
 
-    return {win, team, topFragger, stats: myStats, summoners}
+    return player
     
 }
 
 /**
  *
- * @param name
+ * @param name {string}
  * @param region
  * @param type
  * @param amount {number} number of matches to get, -1 or amount larger than number of matches grabs all matches
@@ -74,7 +82,7 @@ async function getMatch(id, region, accountId) {
  */
 async function getMatches(name, region, type, amount= -1) {
     let summoner = await getSummoner(name, region)
-    
+
     let filter = {
         queue: type,
         beginIndex: 0
@@ -117,4 +125,4 @@ async function collectAllData(name, region, type, amount=0) {
     return collection
 }
 
-collectAllData(sumName, sumRegion, matchType, 5)
+collectAllData(NAME, REGION, MATCH_TYPE, 5)

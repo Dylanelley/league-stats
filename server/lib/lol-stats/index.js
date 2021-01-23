@@ -1,18 +1,17 @@
 const { Constants, LolApi } = require("twisted")
 require("dotenv").config({ path: '../../../.env' })
 
-const RATE_LIMIT = parseFloat(process.env.REQUEST_TIME)
-const MATCH_BATCH_SIZE = 100
 const NAME = "happyfridge24"
 const REGION = Constants.Regions.OCEANIA
-const MATCH_TYPE = 450 // arams
-
+const MATCH_TYPE_ID = 450 // arams
+const MATCH_BATCH_SIZE = 100
 
 const api = new LolApi({
     key : process.env.API_KEY,
     rateLimitRetry: false,
     rateLimitRetryAttempts: 0
 })
+
 
 async function getSummoner(name, region) {
     return (await api.Summoner.getByName(name, region)).response
@@ -109,7 +108,7 @@ async function getMatches(name, region, type, amount= -1) {
     return {summoner, matches}
 }
 
-async function collectAllData(name, region, type, amount=0) {
+async function collectAllData(name, region, type, amount= -1) {
     console.log("Finding Matches ...")
     
     let collection = await getMatches(name, region, type, amount)
@@ -125,4 +124,4 @@ async function collectAllData(name, region, type, amount=0) {
     return collection
 }
 
-collectAllData(NAME, REGION, MATCH_TYPE, 5)
+collectAllData(NAME, REGION, MATCH_TYPE_ID, 5)

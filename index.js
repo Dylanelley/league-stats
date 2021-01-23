@@ -1,9 +1,9 @@
 const { Constants } = require("twisted")
-const {performance} = require('perf_hooks');
-
+const { performance } = require('perf_hooks')
 
 
 require("dotenv").config()
+
 // API_KEY = process.env.API_KEY
 let LolApiObject = require("twisted").LolApi
 
@@ -25,6 +25,7 @@ const api = new LolApiObject({
 async function fetchSummonerDetails(name, region) {
     return (await api.Summoner.getByName(name, region)).response
 }
+
 async function fetchMatch(id, region, filter) {
     let rawMatches = await api.Match.list(id, region, filter)
     rawMatches.response.matches.forEach(m => {
@@ -76,41 +77,43 @@ async function fetchGame(id, region, accountId) {
     
 }
 
-async function getMatchesShort(name, region, type, amount) {
-    let user = await fetchSummonerDetails(name, region)
-    
-    let filter = {
-        queue: type,
-        beginIndex: 0,
-        endIndex: amount
-    }
-
-    let rawMatches = await fetchMatch(user.accountId, region, filter)
-    let userOb = {summoner: user, matches: rawMatches.matches}
-    return userOb
-}
-
-async function getAllMatches(name, region, type) {
+/**
+ *
+ * @param name
+ * @param region
+ * @param type
+ * @param amount {number} number of matches to get, -1 or amount larger than number of matches grabs all matches
+ * @returns {Promise<{summoner: unknown, matches: *[]}>}
+ */
+async function getMatches(name, region, type, amount= -1) {
     let user = await fetchSummonerDetails(name, region)
     
     let filter = {
         queue: type,
         beginIndex: 0
     }
+
     let totalMatches = []
     let matchBatch
-    
-    
+
 
     do {
+        if (0 < amount) {
+            if (amount < 100) {
+                filter.endIndex = filter.beginIndex + amount
+                amount = 0
+            } else {
+                amount -= 100
+            }
+        }
+
         matchBatch = await fetchMatch(user.accountId, region, filter)
         totalMatches = totalMatches.concat(matchBatch.matches)
-        
+
         console.log(filter.beginIndex + " : " + matchBatch.endIndex)
 
         filter.beginIndex = matchBatch.endIndex
-
-    } while (matchBatch.endIndex != matchBatch.startIndex)
+    } while ((matchBatch.startIndex !== matchBatch.endIndex) && amount !== 0)
 
     let userOb = {summoner: user, matches: totalMatches}
     
@@ -120,30 +123,17 @@ async function getAllMatches(name, region, type) {
 async function collectAllData(name, region, type, amount=0) {
     console.log("Finding Matches ...")
     
-    let collection
-    if (amount < 100 && amount > 0) {
-        collection = await getMatchesShort(name, region, type, amount)
-    }
-    else {
-        collection = await getAllMatches(name, region, type)
-    }
-    
+    let collection = await getMatches(name, region, type, amount)
     let length = collection.matches.length
-   
     
     let actualTimePassed
     for (let i = 0; i < length; i++) {
         console.log(i+1 + "/" + length)
-        
-        collection.matches[i].gameStats = await fetchGame(collection.matches[i].gameId, region, collection.summoner.accountId)   
-        
-        
-        
+        collection.matches[i].gameStats = await fetchGame(collection.matches[i].gameId, region, collection.summoner.accountId)
     }
+
     console.log(collection.matches[0])
     return collection
 }
 
-
-
-collectAllData(sumName, sumRegion, matchType, 20)
+collectAllData(sumName, sumRegion, matchType, -1)

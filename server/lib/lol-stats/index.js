@@ -18,7 +18,7 @@ module.exports = class LolStats {
     async getMatch(id, region, accountId) {
         let match = await this.api.Match.get(id, region)
         let player = {
-            id,
+            participantId: null,
             team: "",
             stats: {
                 win: false,
@@ -36,7 +36,7 @@ module.exports = class LolStats {
 
         match.response.participantIdentities.forEach(summoner => {
             if (summoner.player.accountId === accountId) {
-                player.id = summoner.participantId
+                player.participantId = summoner.participantId
             } else {
                 player.opponents.push(summoner.player.summonerName)
             }
@@ -112,10 +112,10 @@ module.exports = class LolStats {
 
         for (let i = 0; i < length; i++) {
             console.log(i+1 + "/" + length)
-            matches[i].gameStats = await this.getMatch(matches[i].gameId, region, summoner.accountId)
+            matches[i].match = await this.getMatch(matches[i].gameId, region, summoner.accountId)
+            matches[i].championName = Constants.Champions[matches[i].champion]
         }
 
-        matches[0].championName = Constants.Champions[matches[0].champion]
         console.log(matches[0])
 
         return matches

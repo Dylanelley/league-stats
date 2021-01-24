@@ -1,9 +1,9 @@
-const LolApiWrapper = require('../lib/lol-stats/index')
+const LolStats = require('../lib/lol-stats/index')
 const { Constants } = require('twisted')
 
 require("dotenv").config({ path: '../.env' })
 
-const api = new LolApiWrapper({
+const api = new LolStats({
     key : process.env.API_KEY,
     rateLimitRetry: false,
     rateLimitRetryAttempts: 0

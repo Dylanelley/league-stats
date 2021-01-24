@@ -3,7 +3,7 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 const morgan = require('morgan');
 
-const testRouter = require('./routes/test.routes');
+const matchRouter = require('./routes/match.routes');
 
 const app = express();
 
@@ -11,7 +11,7 @@ app.use(morgan('dev'));
 app.use(cors());
 app.use(bodyParser.json());
 
-app.use('/test', testRouter)
+app.use('/match', matchRouter)
 
 const port = process.env.PORT || 4000;
 app.listen(port, () => {

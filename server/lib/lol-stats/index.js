@@ -2,6 +2,10 @@ const { Constants, LolApi } = require("twisted")
 
 const MATCH_BATCH_SIZE = 100
 
+function waiter(ms){
+    return new Promise(resolve => setTimeout(resolve, ms))
+}
+
 module.exports = class LolStats {
     constructor(options) {
         this.api = new LolApi(options)

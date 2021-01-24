@@ -2,9 +2,11 @@ const { Constants, LolApi } = require("twisted")
 
 const MATCH_BATCH_SIZE = 100
 
+/*
 function waiter(ms){
     return new Promise(resolve => setTimeout(resolve, ms))
 }
+*/
 
 module.exports = class LolStats {
     constructor(options) {
@@ -68,14 +70,6 @@ module.exports = class LolStats {
         return player
     }
 
-    /**
-     *
-     * @param summoner
-     * @param region
-     * @param type
-     * @param amount {number} number of matches to get, -1 or amount larger than number of matches grabs all matches
-     * @returns {Promise<*[]>}
-     */
     async getMatches(summoner, region, type, amount= -1) {
         let filter = {
             queue: type,
@@ -103,7 +97,7 @@ module.exports = class LolStats {
         return matches
     }
 
-    async getMatchesStats(name, region, type, amount= -1) {
+    async getMatchesStats({name, region, type, amount= -1}) {
         console.log("Finding Matches ...")
 
         let summoner = await this.getSummoner(name, region)

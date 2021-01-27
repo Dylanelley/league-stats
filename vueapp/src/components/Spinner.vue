@@ -1,16 +1,31 @@
 <template>
-    <svg class="loading-bar" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="150px" height="150px" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid">
-        <path d="M10 50A40 40 0 0 0 90 50A40 42 0 0 1 10 50" fill="#2c3e50" stroke="none">
-            <animateTransform attributeName="transform" type="rotate" dur="1s" repeatCount="indefinite" keyTimes="0;1" values="0 50 51;360 50 51"></animateTransform>
-        </path>
-        <text x="50%" y="50%" text-anchor="middle" alignment-baseline="middle" font-size="10px" fill="#000000" fill-opacity="50%">{{percent}}%</text>
-    </svg>
+  <div>
+    <div class="modal" :class="{ 'is-active': this.isActive }">
+      <div class="modal-background"></div>
+      <div class="modal-content">
+        <progress class="progress is-primary" :value="progress" max="100"></progress>
+      </div>
+      <button class="modal-close is-large" aria-label="close" @click="toggleIsActive"></button>
+    </div>
+
+    <button @click="toggleIsActive">test</button>
+  </div>
 </template>
 <script>
 export default {
-    name: "Spinner",
-    props: ["percent"]
-    
+  name: "Spinner",
+  props: ["progress"],
+  data() {
+    return {
+      isActive: false
+    }
+  },
+  methods: {
+    toggleIsActive() {
+      this.isActive = !this.isActive;
+    }
+  }
+
 }
 </script>
 

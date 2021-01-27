@@ -2,7 +2,7 @@ import Vue from 'vue'
 import App from './App.vue'
 import router from "./router"
 
-require("./assets/main.scss")
+require("@/assets/main.scss")
 
 Vue.config.productionTip = false
 

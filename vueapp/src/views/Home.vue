@@ -1,7 +1,7 @@
 <template>
   <div class="">
     <input-form></input-form>
-    <spinner></spinner>
+    <spinner :progress="progress"></spinner>
   </div>
 </template>
 
@@ -14,6 +14,11 @@ export default {
   components: {
     "input-form": InputForm,
     "spinner": Spinner
+  },
+  data() {
+    return {
+      progress: 15
+    }
   }
 }
 </script>

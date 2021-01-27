@@ -6,7 +6,7 @@
     
     <input-form/>
 
-    <loading-bar/>
+    <loading-bar :percent="20"/>
     
     </div>
     
@@ -54,7 +54,11 @@ export default {
 }
 
 .loading-bar {
-  border: 2px solid black;
+  margin: auto;
+  margin-top: 100px;
+  background: rgb(255, 255, 255);
+  display: block;
+  shape-rendering: auto; 
 }
 #page-wrapper {
   margin: auto;

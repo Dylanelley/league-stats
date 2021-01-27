@@ -1,10 +1,14 @@
 <template>
   <div class="">
-    <input-form></input-form>
-    <modal :is-active="modal.isActive">
-      <progress class="progress is-primary" :value="modal.progress.value" :max="modal.progress.max"></progress>
-    </modal>
-    <button @click="toggleModalIsActive">display progress modal</button>
+    <section class="section">
+      <div class="container">
+        <input-form></input-form>
+        <modal :is-active="modal.isActive">
+          <progress class="progress is-primary" :value="modal.progress.value" :max="modal.progress.max"></progress>
+        </modal>
+        <button @click="toggleModalIsActive">display progress modal</button>
+      </div>
+    </section>
   </div>
 </template>
 

@@ -1,21 +1,44 @@
 <template>
-    <form class='input-form'>
-        
-        <input id="summoner-name" placeholder="Summoner Name">
-        <select id="region" aria-placeholder="Region">
-            <option value="OC1">OCE</option>
-            <option value="NA1">NA</option>
-            <option value="EUS">EU</option>
-        </select>
-        <select id="number-of-games">
-            <option value=20>20</option>
-            <option value=100>100</option>
-            <option value=-1>All</option>
-        </select>
-        
-        <button>Find Data</button>
-
-    </form>
+  <div class="field is-horizontal is-expanded">
+    <div class="field-body">
+      <div class="field">
+        <p class="control">
+          <input class="input" type="text" placeholder="Summoner">
+        </p>
+      </div>
+      <div class="field is-narrow">
+        <p class="control has-icons-left">
+          <span class="select">
+            <select>
+              <option selected>Region</option>
+              <option>Select dropdown</option>
+              <option>With options</option>
+            </select>
+          </span>
+          <span class="icon is-small is-left">
+            <i class="fas fa-globe"></i>
+          </span>
+        </p>
+      </div>
+      <div class="field is-narrow">
+        <p class="control has-icons-left">
+          <span class="select">
+            <select>
+              <option selected>Size</option>
+              <option>Select dropdown</option>
+              <option>With options</option>
+            </select>
+          </span>
+          <span class="icon is-small is-left">
+            <i class="fas fa-globe"></i>
+          </span>
+        </p>
+      </div>
+      <div class="control">
+        <button class="button is-primary">Submit</button>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script>
@@ -27,22 +50,4 @@ export default {
 
 <style scoped>
 
-#summoner-name {
-    width: 40%;
-}
-select {
-    width: 15%;
-}
-button:hover {
-    background-color: azure;
-    cursor: pointer;
-}
-input, select, button{
-  padding: 8px 10px;
-  margin: 8px 5px;
-  display: inline-block;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  box-sizing: border-box;
-}
 </style>

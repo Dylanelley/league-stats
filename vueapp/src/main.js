@@ -3,6 +3,8 @@ import App from './App.vue'
 import router from "./router"
 
 require("@/assets/main.scss")
+require("@fortawesome/fontawesome-free/scss/fontawesome.scss")
+require("@fortawesome/fontawesome-free/js/all")
 
 Vue.config.productionTip = false
 

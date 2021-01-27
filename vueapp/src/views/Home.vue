@@ -1,23 +1,37 @@
 <template>
   <div class="">
     <input-form></input-form>
-    <spinner :progress="progress"></spinner>
+    <modal :is-active="modal.isActive">
+      <progress class="progress is-primary" :value="modal.progress.value" :max="modal.progress.max"></progress>
+    </modal>
+    <button @click="toggleModalIsActive">display progress modal</button>
   </div>
 </template>
 
 <script>
 import InputForm from "@/components/InputForm";
-import Spinner from "@/components/Spinner";
+import Modal from "@/components/partials/Modal";
 
 export default {
   name: "Home",
   components: {
     "input-form": InputForm,
-    "spinner": Spinner
+    "modal": Modal
   },
   data() {
     return {
-      progress: 15
+      modal: {
+        isActive: false,
+        progress: {
+          value: undefined,
+          max: 100
+        }
+      }
+    }
+  },
+  methods: {
+    toggleModalIsActive() {
+      this.modal.isActive = !this.modal.isActive;
     }
   }
 }

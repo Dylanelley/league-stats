@@ -24,7 +24,6 @@ export default {
     "input-form": InputForm,
     "modal": Modal,
     "champion-table": ChampionTable
-
   },
   data() {
     return {

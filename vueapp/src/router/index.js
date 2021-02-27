@@ -3,6 +3,7 @@ import VueRouter from 'vue-router'
 
 // Public
 import Home from '@/views/Home';
+import Dashboard from "@/views/Dashboard";
 
 Vue.use(VueRouter)
 
@@ -11,6 +12,11 @@ const routes = [
         path: '/',
         name: 'home',
         component: Home
+    },
+    {
+        path: '/dashboard',
+        name: 'dashboard',
+        component: Dashboard
     }
 ]
 

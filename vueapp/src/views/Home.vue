@@ -7,7 +7,6 @@
           <progress class="progress is-primary" :value="modal.progress.value" :max="modal.progress.max"></progress>
         </modal>
         <button @click="toggleModalIsActive">display progress modal</button>
-        <champion-table></champion-table>
       </div>
     </section>
   </div>
@@ -16,14 +15,12 @@
 <script>
 import InputForm from "@/components/InputForm";
 import Modal from "@/components/partials/Modal";
-import ChampionTable from "@/components/ChampionTable"
 
 export default {
   name: "Home",
   components: {
     "input-form": InputForm,
-    "modal": Modal,
-    "champion-table": ChampionTable
+    "modal": Modal
   },
   data() {
     return {

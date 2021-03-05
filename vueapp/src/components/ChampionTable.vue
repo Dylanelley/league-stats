@@ -14,7 +14,7 @@
       <tr :key="champion.id" v-for="champion in championData">
         <td>{{champion.championName}}</td>
         <td>{{champion.gamesPlayed}}</td>
-        <td>{{champion.winRate}}%</td>
+        <td>{{champion.wins/champion.gamesPlayed * 100}}%</td>
         <td>{{champion.averageKDA[0]}}/{{champion.averageKDA[1]}}/{{champion.averageKDA[2]}}</td>
         <td>{{champion.maxKIlls}}</td>
         <td>{{champion.totalPentakills}}</td>
@@ -33,7 +33,7 @@ export default {
         {
           "championName": "VI",
           "gamesPlayed": 20,
-          "winRate": 50,
+          "wins": 10,
           "averageKDA": [5.5, 3, 10], // 5.5/3/10
           "maxKIlls": 34,
           "totalPentakills": 1
@@ -41,7 +41,7 @@ export default {
         {
           "championName": "ZED",
           "gamesPlayed": 20,
-          "winRate": 50,
+          "wins": 5,
           "averageKDA": [5.5, 3, 10],
           "maxKIlls": 34,
           "totalPentakills": 1
@@ -49,7 +49,7 @@ export default {
         {
           "championName": "ZAC",
           "gamesPlayed": 20,
-          "winRate": 50,
+          "wins": 1,
           "averageKDA": [5.5, 3, 10],
           "maxKIlls": 34,
           "totalPentakills": 1

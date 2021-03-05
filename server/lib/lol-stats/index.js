@@ -2,11 +2,11 @@ const { Constants, LolApi } = require("twisted")
 
 const MATCH_BATCH_SIZE = 100
 
-/*
+
 function waiter(ms){
     return new Promise(resolve => setTimeout(resolve, ms))
 }
-*/
+
 
 module.exports = class LolStats {
     constructor(options) {
@@ -17,7 +17,7 @@ module.exports = class LolStats {
         return (await this.api.Summoner.getByName(name, region)).response
     }
 
-    async getMatch(id, region, accountId) {
+    async getMatch(id, region, summonerId) {
         let match = await this.api.Match.get(id, region)
         let player = {
             participantId: null,
@@ -35,9 +35,11 @@ module.exports = class LolStats {
             opponents: []
         }
         let mostKills = 0;
-
+        
+        
         match.response.participantIdentities.forEach(summoner => {
-            if (summoner.player.accountId === accountId) {
+            
+            if (summoner.player.summonerId === summonerId) {
                 player.participantId = summoner.participantId
             } else {
                 player.opponents.push(summoner.player.summonerName)
@@ -45,7 +47,8 @@ module.exports = class LolStats {
         });
 
         match.response.participants.forEach(summoner => {
-            if (summoner.participantId === player.id) {
+            
+            if (summoner.participantId === player.participantId) {
                 player.team = (summoner.teamId === 100) ? "BOT SIDE" : "TOP SIDE"
                 player.stats.win = summoner.stats.win
                 player.stats.kills = {
@@ -66,7 +69,6 @@ module.exports = class LolStats {
         })
 
         player.topFragger = player.stats.kills.total === mostKills
-
         return player
     }
 
@@ -101,17 +103,67 @@ module.exports = class LolStats {
         console.log("Finding Matches ...")
 
         let summoner = await this.getSummoner(name, region)
+        
         let matches = await this.getMatches(summoner, region, type, amount)
         let length = matches.length
 
+        let championInfo = {}
+        let overallInfo = {
+            gamesPlayed: length,
+            wins: 0,
+            averageKDA: [0, 0, 0],
+            pentaKills: 0
+        }
+        
+        // loop through all matches
         for (let i = 0; i < length; i++) {
             console.log(i+1 + "/" + length)
-            matches[i].match = await this.getMatch(matches[i].gameId, region, summoner.accountId)
+            await waiter(1000)
+            matches[i].match = await this.getMatch(matches[i].gameId, region, summoner.id)
             matches[i].championName = Constants.Champions[matches[i].champion]
+            
+            // overall info
+            
+            overallInfo.wins += (matches[i].match.stats.win ? 1 : 0)
+            overallInfo.averageKDA[0] += matches[i].match.stats.kills.total
+            overallInfo.averageKDA[1] += matches[i].match.stats.deaths
+            overallInfo.averageKDA[2] += matches[i].match.stats.assists
+            overallInfo.pentaKills += matches[i].match.stats.kills.pentaKills
+            
+            // info by champion
+            if (championInfo[matches[i].championName] === undefined) {
+                championInfo[matches[i].championName] = {
+                    gamesPlayed: 1,
+                    wins: (matches[i].match.stats.win ? 1 : 0),
+                    averageKDA: [matches[i].match.stats.kills.total, matches[i].match.stats.deaths, matches[i].match.stats.assists],
+                    maxKills: matches[i].match.stats.kills.total,
+                    totalPentaKills: matches[i].match.stats.kills.pentaKills
+                }
+            }
+            else {
+                championInfo[matches[i].championName].gamesPlayed += 1
+                championInfo[matches[i].championName].wins += (matches[i].match.stats.win ? 1 : 0)
+                championInfo[matches[i].championName].averageKDA[0] += matches[i].match.stats.kills.total
+                championInfo[matches[i].championName].averageKDA[1] += matches[i].match.stats.deaths
+                championInfo[matches[i].championName].averageKDA[2] += matches[i].match.stats.assists
+                championInfo[matches[i].championName].maxKills = (matches[i].match.stats.kills.total > championInfo[matches[i].championName].maxKills ? matches[i].match.stats.kills.total : championInfo[matches[i].championName].maxKills)
+                championInfo[matches[i].championName].totalPentaKills += matches[i].match.stats.kills.pentaKills
+            }
         }
-
         console.log(matches[0])
+        // averaging KDA's
+        
+        overallInfo.averageKDA = overallInfo.averageKDA.map(x => x/overallInfo.gamesPlayed)
+        for (let champ in championInfo) {
+            championInfo[champ].averageKDA = championInfo[champ].averageKDA.map(x => x/championInfo[champ].gamesPlayed)
+        }
+        
 
-        return matches
+        // building return object
+        let stats = {
+            overall : overallInfo,
+            champion : championInfo
+        }
+        return stats
     }
 }

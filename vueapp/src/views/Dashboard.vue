@@ -1,19 +1,31 @@
 <template>
-  <bar-chart :chart-data="datacollection"></bar-chart>
+  <div>
+    <div class="card">
+      <div class="card-header">
+        <h1 class="card-header-title">Test</h1>
+      </div>
+      <div class="card-content">
+        <bar-chart :chart-data="datacollection"></bar-chart>
+        <champion-table></champion-table>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script>
 import BarChart from "@/components/BarChart";
+import ChampionTable from "@/components/ChampionTable";
 
 export default {
   name: "Dashboard",
   components: {
-    BarChart
+    BarChart,
+    ChampionTable
   },
   data() {
     return {
       datacollection: {
-        labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+        labels: [],
         datasets: [
           {
             label: 'Games',
@@ -21,10 +33,31 @@ export default {
             pointBackgroundColor: 'white',
             borderWidth: 1,
             pointBorderColor: '#249EBF',
-            data: [40, 20, 30, 50, 90, 10, 20, 40, 50, 70, 90, 100]
+            data: []
           }
         ]
       }
+    }
+  },
+  mounted() {
+    this.getMatchesStats()
+  },
+  methods: {
+    getMatchesStats() {
+      let options = {
+        'name': 'happyfridge24',
+        'region': 'OC1',
+        'type': 450,
+        'amount': 2
+      }
+
+      this.$http.post("http://localhost:4000/match", options)
+          .then(response => {
+            console.log(response);
+          })
+          .catch(error => {
+            console.error(error);
+          });
     }
   }
 }
